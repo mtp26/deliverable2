@@ -1,6 +1,7 @@
 package deliverable2;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 import java.net.InetAddress;
 
@@ -9,10 +10,23 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import com.google.common.net.InetAddresses;
 
+//@RunWith(MockitoJUnitRunner.class)
 public class inetAddressesTests {
+	
+	private InetAddress getMockAddr(String addr) {
+		    InetAddress mockAddr = mock(InetAddress.class);
+		    byte[] byteAddr = {(byte) 0xff};
+		    doReturn(addr).when(mockAddr).getHostAddress();
+		    doReturn(byteAddr).when(mockAddr).getAddress();
+		    return mockAddr;
+	}
+	  
+	// An all-zeros IPv4 address should be verified as a valid 
 	@Test
 	public void zerosAddress() {
 		assertTrue("Must work in all zeros case",
@@ -45,7 +59,8 @@ public class inetAddressesTests {
 	
 	@Test
 	public void isMaximumIPv4() {
-		InetAddress testNetMask = InetAddresses.forString("255.255.255.255");
+		//InetAddress testNetMask = InetAddresses.forString("255.255.255.255");
+		InetAddress testNetMask = getMockAddr("255.255.255.255");
 		assertTrue("Maximum range for IPv4",
 					InetAddresses.isMaximum(testNetMask));
 	}
@@ -93,5 +108,14 @@ public class inetAddressesTests {
 		InetAddress topNetMask = InetAddresses.forString("255.255.255.255");
 		exception.expect(IllegalArgumentException.class);
 		InetAddresses.increment(topNetMask);
-	}	
+	}
+	
+	@Test
+	public void testToURIString() {
+		InetAddress inAddress = getMockAddr("192.168.0.1");
+		//System.out.println(InetAddresses.toAddrString(inAddress));
+		//assertEquals(InetAddresses.toAddrString(inAddress), "192.168.0.1");
+		//inAddress.InetAddresses.increment(inAddress);
+		//InetAddresses.coerceToInteger(inAddress);
+	}
 }
