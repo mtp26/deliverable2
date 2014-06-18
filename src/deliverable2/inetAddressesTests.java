@@ -8,14 +8,9 @@ import java.net.InetAddress;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 
 import com.google.common.net.InetAddresses;
 
-//@RunWith(MockitoJUnitRunner.class)
 public class inetAddressesTests {
 	
 	// Get a mocked address from a string
@@ -30,6 +25,74 @@ public class inetAddressesTests {
 	    InetAddress mockAddr = mock(InetAddress.class);
 	    doReturn(byteAddr).when(mockAddr).getAddress();
 	    return mockAddr;
+	}
+	
+	// Should be able to convert an IPv4 address string into an InetAddress object that represents the original string
+	// Note that the toString() method for InetAddress returns a forward slash on addresses, so that character is ignored in this test
+	@Test
+	public void testForStringIPv4() {
+		String strAddr = "10.0.0.1";
+		InetAddress addr = InetAddresses.forString(strAddr);
+		assertEquals(addr.toString().substring(1), strAddr);
+	}
+	
+	// Should be able to convert an IPv6 address string into an InetAddress object that represents the original string
+	// Note that the toString() method for InetAddress returns a forward slash on addresses, so that character is ignored in this test
+	@Test
+	public void testForStringIPv6() {
+		String strAddr = "fe80:0:0:0:202:b3ff:fe1e:8329";
+		InetAddress addr = InetAddresses.forString(strAddr);
+		assertEquals(addr.toString().substring(1), strAddr);
+	}
+	
+	// An illegal argument exception should be generated when string input other than an IPv4 or IPv6 address is given
+	@Rule public ExpectedException AsdfArgEx = ExpectedException.none();
+	@Test
+	public void testForStringNull() {
+		AsdfArgEx.expect(IllegalArgumentException.class);
+		InetAddress addr = InetAddresses.forString("asdf");
+	}
+	
+	// A null pointer exception should be generated when an attempt is made to convert a null string into an InetAddress
+	@Rule public ExpectedException NullPtrStrEx = ExpectedException.none();
+	@Test
+	public void testForAddrStrNull() {
+		NullPtrStrEx.expect(NullPointerException.class);
+		InetAddress addr = InetAddresses.forString(null);
+	}
+	
+	// A null pointer exception should be generated when an attempt is made to convert an InetAddress object 
+	//  with a null reference into a string.
+	@Rule public ExpectedException NullArgEx = ExpectedException.none();
+	@Test
+	public void testToAddrNullReference() {
+		NullArgEx.expect(IllegalArgumentException.class);
+		InetAddress mockAddr = getMockAddr("24.0.0.1");
+		String strAddr = InetAddresses.toAddrString(mockAddr);
+	}
+	
+	// Converting from an address string using forString to an InetAddress and then back to an address string using 
+	//  toAddrString should produce a string that matches the original.
+	// Define a string and convert it to an InetAddress using forString.
+	// Convert the generated InetAddress to a string using toAddrString.
+	// This generated string should be the same as the original address string.
+	@Test
+	public void testAddrStrCompare() {
+		String addrStr = "172.0.0.1";
+		InetAddress addr = InetAddresses.forString(addrStr);
+		String addrStr2 = InetAddresses.toUriString(addr);
+		assertEquals(addrStr, addrStr2);
+	}
+	
+	// The toAddrString and toURIString methods should produce the same value for IPv4 addresses
+	// Create an IPv4 address from the same address string.
+	// Feed the address into toAddString and toURIString
+	// The resulting string should be equal to each other and the original address string
+	@Test
+	public void testToAddrStringAndURIStringEq() {
+		InetAddress addr = InetAddresses.forString("192.168.0.1");
+		assertEquals("toAddrString and toURIString should produce the same string given the same IPv4 address input",
+				     InetAddresses.toAddrString(addr), InetAddresses.toUriString(addr));
 	}
 	  
 	// An all-zeros IPv4 address should be valid. This covers the bottom of the IPv4 address range.
@@ -143,20 +206,5 @@ public class inetAddressesTests {
 		InetAddress topNetMask = InetAddresses.forString("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff");
 		IPv6ArgEx.expect(IllegalArgumentException.class);
 		InetAddresses.increment(topNetMask);
-	}
-	
-	@Test
-	public void testToURIString() {
-		//InetAddress inAddress = getMockAddr("192.168.0.1");
-		
-		/* InetAddress topNetMask = InetAddresses.forString("255.255.255.255");
-		InetAddress spyAddr = spy(topNetMask);
-	    when(spyAddr.getHostAddress()).thenReturn("192.168.0.1");
-	    */
-
-		//System.out.println(InetAddresses.toAddrString(spyAddr));
-		//assertEquals(InetAddresses.toAddrString(inAddress), "192.168.0.1");
-		//inAddress.InetAddresses.increment(inAddress);
-		//InetAddresses.coerceToInteger(inAddress);
 	}
 }
